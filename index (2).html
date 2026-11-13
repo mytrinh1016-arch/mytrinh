@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyLink · 고미정</title>
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --card: #ffffff;
+    --ink: #1f2933;
+    --muted: #6b7280;
+    --accent: #2f6f5e;
+    --line: #e5e1d8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+  main { width: 100%; max-width: 440px; }
+  .profile { text-align: center; margin-bottom: 32px; }
+  .avatar {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px; font-weight: 700; margin: 0 auto 16px;
+  }
+  h1 { font-size: 22px; margin-bottom: 6px; }
+  .bio { color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .links { list-style: none; display: grid; gap: 12px; }
+  .links a {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px 18px;
+    color: var(--ink); text-decoration: none; font-weight: 600;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .links a:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .count { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .stats {
+    margin-top: 32px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px;
+  }
+  .stats h2 { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .total { font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+  .row { margin-bottom: 10px; font-size: 13px; }
+  .row-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .bar span { display: block; height: 100%; background: var(--accent); }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 28px; }
+</style>
+</head>
+<body>
+<main>
+  <section class="profile">
+    <div class="avatar">미</div>
+    <h1>고미정</h1>
+    <p class="bio">나만의 링크 모음</p>
+  </section>
+
+  <ul class="links" id="links"></ul>
+
+  <section class="stats">
+    <h2>클릭 통계 (이 브라우저 기준)</h2>
+    <div class="total" id="total">총 0 클릭</div>
+    <div id="rows"></div>
+  </section>
+
+  <footer>MyLink · GitHub Pages</footer>
+</main>
+
+<script>
+  // ▼ 여기서 링크 제목과 주소를 바꾸세요
+  const LINKS = [
+    { id: "github",    title: "GitHub",    url: "https://github.com/" },
+    { id: "instagram", title: "Instagram", url: "https://instagram.com/" },
+    { id: "blog",      title: "Blog",      url: "https://blog.naver.com/" }
+  ];
+
+  const KEY = "mylink-clicks";
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
+  }
+  function save(c) {
+    try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {}
+  }
+
+  let clicks = load();
+
+  function render() {
+    const list = document.getElementById("links");
+    list.innerHTML = "";
+    LINKS.forEach(l => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = l.url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.innerHTML = `<span>${l.title}</span><span class="count">${clicks[l.id] || 0} 클릭</span>`;
+      a.addEventListener("click", () => {
+        clicks[l.id] = (clicks[l.id] || 0) + 1;
+        save(clicks);
+        render();
+      });
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+
+    const total = LINKS.reduce((s, l) => s + (clicks[l.id] || 0), 0);
+    document.getElementById("total").textContent = `총 ${total} 클릭`;
+
+    const rows = document.getElementById("rows");
+    rows.innerHTML = "";
+    [...LINKS]
+      .sort((a, b) => (clicks[b.id] || 0) - (clicks[a.id] || 0))
+      .forEach(l => {
+        const n = clicks[l.id] || 0;
+        const pct = total ? Math.round(n / total * 100) : 0;
+        rows.insertAdjacentHTML("beforeend",
+          `<div class="row"><div class="row-head"><span>${l.title}</span><span>${n} 클릭</span></div>
+           <div class="bar"><span style="width:${pct}%"></span></div></div>`);
+      });
+  }
+  render();
+</script>
+</body>
+</html>
